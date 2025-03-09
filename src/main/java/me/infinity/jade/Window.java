@@ -1,5 +1,6 @@
 package me.infinity.jade;
 
+import me.infinity.util.Time;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -17,6 +18,7 @@ public class Window {
     private float a, r, g, b;
 
     private static Window window = null;
+    private boolean fadeToBlack;
 
     private Window() {
         this.width = 1920;
@@ -93,6 +95,8 @@ public class Window {
     }
 
     public void loop() {
+        float beginTime = Time.getTime();
+
         while (!glfwWindowShouldClose(glfwWindow)) {
             // Poll events
             glfwPollEvents();
@@ -100,11 +104,28 @@ public class Window {
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
+
+            if (fadeToBlack) {
+                r = Math.max(r - 0.01f, 0);
+                g = Math.max(g - 0.01f, 0);
+                b = Math.max(b - 0.01f, 0);
+            }
+            else  {
+                r = Math.min(r + 0.01f, 255);
+                g = Math.min(g + 0.01f, 255);
+                b = Math.min(b + 0.01f, 255);
+            }
+
             if (KeyListener.isKeyPressed(GLFW_KEY_SPACE)) {
-                System.out.println("SPACE is Pressed!");
+                fadeToBlack = !fadeToBlack;
             }
 
             glfwSwapBuffers(glfwWindow);
+
+            float endTime = Time.getTime();
+            float dt = endTime - beginTime;
+            beginTime = endTime;
+            System.out.println("Frames : " + (1.0 / dt));
         }
     }
 }
