@@ -16,9 +16,11 @@ public class Window {
     private long glfwWindow;
 
     private float a, r, g, b;
+    private boolean fadeToBlack;
 
     private static Window window = null;
-    private boolean fadeToBlack;
+
+    private static Scene currentScene = null;
 
     private Window() {
         this.width = 1920;
@@ -28,6 +30,19 @@ public class Window {
         this.r = 1.0f;
         this.g = 1.0f;
         this.b = 1.0f;
+    }
+
+    public static void changeScene(int scene) {
+        switch (scene) {
+            case 0:
+                currentScene = new LevelEditorScene();
+                break;
+            case 1:
+                currentScene = new LevelScene();
+                break;
+            default:
+                assert false : "Unknown scene '" + scene + "'";
+        }
     }
 
     public static Window get() {
@@ -81,7 +96,7 @@ public class Window {
         // Make the OpenGL context
         glfwMakeContextCurrent(glfwWindow);
         // Enable v-sync
-        glfwSwapInterval(1);
+        //glfwSwapInterval(1);
 
         // Make the window visible
         glfwShowWindow(glfwWindow);
@@ -92,10 +107,13 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+
+        changeScene(0);
     }
 
     public void loop() {
         float beginTime = Time.getTime();
+        float dt = -1.0f;
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             // Poll events
@@ -105,27 +123,28 @@ public class Window {
             glClear(GL_COLOR_BUFFER_BIT);
 
 
-            if (fadeToBlack) {
-                r = Math.max(r - 0.01f, 0);
-                g = Math.max(g - 0.01f, 0);
-                b = Math.max(b - 0.01f, 0);
-            }
-            else  {
-                r = Math.min(r + 0.01f, 255);
-                g = Math.min(g + 0.01f, 255);
-                b = Math.min(b + 0.01f, 255);
-            }
-
-            if (KeyListener.isKeyPressed(GLFW_KEY_SPACE)) {
-                fadeToBlack = !fadeToBlack;
-            }
+            if (dt > 0)
+                currentScene.update(dt);
 
             glfwSwapBuffers(glfwWindow);
 
             float endTime = Time.getTime();
-            float dt = endTime - beginTime;
+            dt = endTime - beginTime;
             beginTime = endTime;
-            System.out.println("Frames : " + (1.0 / dt));
+            // System.out.println((1.0 / dt) + "FPS");
         }
+    }
+
+    public void updateRGB(float dx) {
+        this.r += dx;
+        this.g += dx;
+        this.b += dx;
+    }
+
+    public void setARGB(int a, int r, int g, int b) {
+        this.a = a;
+        this.r = r;
+        this.g = g;
+        this.b = b;
     }
 }
